@@ -1,12 +1,13 @@
 # An llm-d-planner for rapid llm-d configuration planning
 
+* **Authors**: Andre Fredette (Red Hat), Amit Oren (Red Hat), Jing Chen (IBM) Nick Masluk (IBM)
+* **Proposal Status**: In Review
+
 ## Summary
 
 Platform teams deploying LLMs on llm-d today must navigate a multitude of interacting configuration knobs across llm-d components, with no single tool that reasons across all of them. Config Explorer handles the hardware side well (memory estimation, roofline modeling, GPU ranking) but cannot capture business requirements or generate deployments. NeuralNav handles the user side well (conversational intent gathering manifest generation, one-click deployment) but lacks the analytical depth to reason about configuration trade-offs.
 
 This proposal unifies the two into **llm-d-planner**: NeuralNav becomes the user-facing orchestration layer while Config Explorer becomes the recommendation engine underneath. The combined system uses real benchmark data when an exact match exists and falls back to validated performance estimates when it does not, eliminating the costly trial-and-error that platform teams face today.
-
-Authors: Andre Fredette (Red Hat), Amit Oren (Red Hat), Jing Chen (IBM) Nick Masluk (IBM)
 
 ## Motivation
 
