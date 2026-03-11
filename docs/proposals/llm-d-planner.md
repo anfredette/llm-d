@@ -178,7 +178,7 @@ while preserving modular independence.
 | Presentation | Conversational UI | NeuralNav | Requirements gathering + better user experience |
 | Orchestration | Specification service | NeuralNav | Intent to SLO and traffic profile mapping |
 | Recommendation | Config Explorer API | NeuralNav and Config Explorer | NeuralNav for existing benchmarks; Config Explorer for un-benchmarked configurations |
-| Knowledge | Benchmark Store | NeuralNav and llm-d-benchmark | Source of performance truth. Future: llm-d Results Store (joint work with Google) |
+| Knowledge | Benchmark Store | NeuralNav, llm-d-benchmark, llm-d Results Store & Analysis | Provide performance truth based on a community-driven database of llm-d benchmarks |
 | Deployment | Kubernetes | NeuralNav | Manifest generation, cluster orchestration |
 | Monitoring | Kubernetes | NeuralNav, llm-d-observability | Live monitoring of llm-d stack health |
 
