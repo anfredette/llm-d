@@ -2,7 +2,7 @@
 
 ## Summary
 
-Platform teams deploying LLMs on llm-d today must navigate a multitude of interacting configuration knobs across llm-d components, with no single tool that reasons across all of them. Config Explorer handles the hardware side well (memory estimation, roofline modeling, GPU ranking) but cannot capture business requirements or generate deployments. NeuralNav handles the user side well (conversational intent gathering manifest generation, one-click deployment) but lacks the analytical depth to reason about configuration trade-offs.
+Platform teams deploying LLMs on llm-d today must navigate a multitude of interacting configuration knobs across llm-d components, with no single tool that reasons across all of them. [Config Explorer](https://github.com/llm-d/llm-d-benchmark/tree/main/config_explorer) handles the hardware side well (memory estimation, roofline modeling, GPU ranking) but cannot capture business requirements or generate deployments. [NeuralNav](https://github.com/redhat-et/neuralnav) handles the user side well (conversational intent gathering manifest generation, one-click deployment) but lacks the analytical depth to reason about configuration trade-offs.
 
 This proposal unifies the two into **llm-d-planner**: NeuralNav becomes the user-facing orchestration layer while Config Explorer becomes the recommendation engine underneath. The combined system uses real benchmark data when an exact match exists and falls back to validated performance estimates when it does not, eliminating the costly trial-and-error that platform teams face today.
 
@@ -118,6 +118,7 @@ The integration is not a simple swap. NeuralNav already has a working recommenda
 | Hybrid recommendation | Replace NeuralNav's coarse QPS-based filtering with Config Explorer's roofline + memory estimation; fall back to real benchmark when exact match exists | NeuralNav recommendation view shows "Estimated" vs. "Benchmarked" labels per config |
 | Integrating a more accurate inference performance estimation engine like BLIS (phase 1) | Simulating inference performance is a critical component because running real benchmarks are expensive. To sweep through configurations rapidly, estimators that accurately predict inference performance are required. | Design a pluggable interface for inference engines like BLIS or Config Explorer's current use of BentoML roofline model. |
 | PD disaggregation knobs search | Deliver end-to-end configurator for P/D deployments, including TP, DP arguments, suggesting P and D replicas, and KV-cache transfer strategy. | Supports llm-d's PD split serving framework with data-backed configurations |
+| Kubernetes deployment generator | Kubernetes manifest generation by converting to Kustomize or Kubernetes yaml files | Quick manifest generation engine for the recommended configurations |
 | llm-d Blog post on llm-d-planner's capabilities | Document llm-d-planner journey for easy configuration planning for llm-d | Public validation of approach, community feedback loop, and impact |
 
 ### Mid-term: expand knob-space search and real benchmarking
@@ -128,7 +129,7 @@ Objective: expand the recommendation surface from hardware selection to full ser
 |---|---|---|
 | Inference scheduler and scoring search. Phase 2 of BLIS integration. | Extend configuration search to inference scheduler and scoring weights | Present performance data (real or estimated) for inference scheduling-driven configuration comparison |
 | Benchmark-backed validation | Run llm-d benchmark sweeps for each recommendation configuration. Stores results (local or publicly managed DB by llm-d) | Closes feedback loop. Estimations are compared to real throughput/latency |
-| Blog posts | 1. Planning and search across vLLM + inference scheduler knobs with real results. 2. Same thing but for PD | Continued public validation of approach, community feedback loop, and impact |
+| Blog posts | Planning and search across vLLM + inference scheduler knobs with real results. | Continued public validation of approach, community feedback loop, and impact |
 
 ### Long-term: simulation-driven dynamic tuning
 
