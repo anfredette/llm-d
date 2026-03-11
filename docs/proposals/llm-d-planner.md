@@ -5,13 +5,20 @@ Masluk (IBM)
 
 ## Summary
 
+[Config Explorer](https://github.com/llm-d/llm-d-benchmark/tree/main/config_explorer)
+is a capacity planning library within llm-d-benchmark that estimates GPU memory
+requirements, evaluates parallelism strategies, and recommends cost-effective
+hardware configurations using roofline analysis.
+[NeuralNav](https://github.com/redhat-et/neuralnav) is a conversational
+deployment tool that guides users from natural-language requirements through SLO
+target generation, model-GPU recommendation, Kubernetes manifest creation, and
+one-click deployment.
+
 Platform teams deploying LLMs on llm-d today must navigate a multitude of
 interacting configuration knobs across llm-d components, with no single tool
-that reasons across all of them. [Config
-Explorer](https://github.com/llm-d/llm-d-benchmark/tree/main/config_explorer)
-handles the hardware side well (memory estimation, roofline modeling, GPU
-ranking) but cannot capture business requirements or generate deployments.
-[NeuralNav](https://github.com/redhat-et/neuralnav) handles the user side well
+that reasons across all of them. Config Explorer handles the hardware side well
+(memory estimation, roofline modeling, GPU ranking) but cannot capture business
+requirements or generate deployments. NeuralNav handles the user side well
 (conversational intent gathering, manifest generation, one-click deployment) but
 lacks the analytical depth to reason about configuration trade-offs.
 
