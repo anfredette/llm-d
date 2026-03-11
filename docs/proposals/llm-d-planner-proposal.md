@@ -1,22 +1,22 @@
 # An llm-d-planner for rapid llm-d configuration planning
 
+Authors: Andre Fredette (Red Hat), Amit Oren (Red Hat), Jing Chen (IBM), Nick Masluk (IBM)
+
 ## Summary
 
-Platform teams deploying LLMs on llm-d today must navigate a multitude of interacting configuration knobs across llm-d components, with no single tool that reasons across all of them. [Config Explorer](https://github.com/llm-d/llm-d-benchmark/tree/main/config_explorer) handles the hardware side well (memory estimation, roofline modeling, GPU ranking) but cannot capture business requirements or generate deployments. [NeuralNav](https://github.com/redhat-et/neuralnav) handles the user side well (conversational intent gathering manifest generation, one-click deployment) but lacks the analytical depth to reason about configuration trade-offs.
+Platform teams deploying LLMs on llm-d today must navigate a multitude of interacting configuration knobs across llm-d components, with no single tool that reasons across all of them. [Config Explorer](https://github.com/llm-d/llm-d-benchmark/tree/main/config_explorer) handles the hardware side well (memory estimation, roofline modeling, GPU ranking) but cannot capture business requirements or generate deployments. [NeuralNav](https://github.com/redhat-et/neuralnav) handles the user side well (conversational intent gathering, manifest generation, one-click deployment) but lacks the analytical depth to reason about configuration trade-offs.
 
 This proposal unifies the two into **llm-d-planner**: NeuralNav becomes the user-facing orchestration layer while Config Explorer becomes the recommendation engine underneath. The combined system uses real benchmark data when an exact match exists and falls back to validated performance estimates when it does not, eliminating the costly trial-and-error that platform teams face today.
 
-Authors: Andre Fredette (Red Hat), Amit Oren (Red Hat), Jing Chen (IBM) Nick Masluk (IBM)
-
 ## Motivation
 
-Deploying LLMs and LLM-serving stacks like llm-d remains a costly trial-and-error process. Platform engineering teams today must choose across models, hardware options, vLLM engine parameters inference-scheduler and scorer settings, prefill-decode disaggregation jobs, and autoscaling policies. Each component has its own trade-off against latency, throughput, accuracy, and cost. The plethora of configuration dimensions makes it difficult for teams to know how to deploy an llm-d stack that meets their business requirements without expensive experimentation.
+Deploying LLMs and LLM-serving stacks like llm-d remains a costly trial-and-error process. Platform engineering teams today must choose across models, hardware options, vLLM engine parameters, inference-scheduler and scorer settings, prefill-decode disaggregation jobs, and autoscaling policies. Each component has its own trade-off against latency, throughput, accuracy, and cost. The plethora of configuration dimensions makes it difficult for teams to know how to deploy an llm-d stack that meets their business requirements without expensive experimentation.
 
 Real benchmark data exist in llm-d-benchmark, but it is hard to search and harder to map to a specific business scenario. Worse, there is no guarantee that a benchmark matching a team's exact model, hardware, and workload combination has ever been run, as it is costly to do so. Teams are left choosing between incomplete data and blind experimentation.
 
-Today, the llm-d-benchmark's Config Explorer module addresses part of the problem. Given a model and workload, it estimates GPU memory evaluates parallelism strategies, and recommends the most cost-effective hardware configuration. It is grounded in empirically validated memory models, but it stops at the infrastructure boundary. It does not capture business-level requirements, generate deployment manifests, or orchestrate the serving stack.
+Today, the llm-d-benchmark's Config Explorer module addresses part of the problem. Given a model and workload, it estimates GPU memory, evaluates parallelism strategies, and recommends the most cost-effective hardware configuration. It is grounded in empirically validated memory models, but it stops at the infrastructure boundary. It does not capture business-level requirements, generate deployment manifests, or orchestrate the serving stack.
 
-NeuralNav solves the deployment guidance perspective. It walks users from a natural-language description of their use case through SLO target generation, model-GPU recommendation, Kubernetes manifest creation, and one-click deployment. Its recommendations, however, rely on an internal benchmark dataset and lack the depth of unexplored combinations and the full llm-d configuration space.
+NeuralNav solves the deployment guidance problem. It walks users from a natural-language description of their use case through SLO target generation, model-GPU recommendation, Kubernetes manifest creation, and one-click deployment. Its recommendations, however, rely on pre-existing benchmark data and cannot reason about model-hardware combinations that have not been benchmarked or explore the full llm-d configuration space.
 
 This results in a gap in the end-to-end workflow:
 
@@ -31,15 +31,15 @@ Connecting the two projects into a unified planner would close the gap. Platform
 
 A key advantage of the integrated planner is that it enables several reinforcing feedback loops, each closing a gap that exists when the tools operate in isolation.
 
-1. **Deployment validation loop**: after a recommended configuration is deployed, live serving metrics are compared against the pre-deployment estimates. When the serving stack meets or exceeds expectation, the result is recorded as a valid benchmark. When it falls short, the deviation is surfaced to the user with revised recommendation.
+1. **Deployment validation loop**: after a recommended configuration is deployed, live serving metrics are compared against the pre-deployment estimates. When the serving stack meets or exceeds expectation, the result is recorded as a valid benchmark. When it falls short, the deviation is surfaced to the user with revised recommendations.
 2. **Workload adaptation loop**: traffic patterns shift over time. Continuous monitoring of the live stack detects these shifts and triggers re-evaluation of the current configuration. We can leverage llm-d-observability and the workload-variant-autoscaler for this purpose.
-3. **Estimation accuracy loop**: every pair of predicted performance and actual benchmark result becomes training signals for the inference performance estimation engine. As real serving performance data flows back, the recommendations become more accurate next time.
+3. **Estimation accuracy loop**: every pair of predicted performance and actual benchmark result becomes a training signal for the inference performance estimation engine. As real serving performance data flows back, the recommendations become more accurate next time.
 
 ### Goals
 
 - Unify Config Explorer and NeuralNav into a single **llm-d-planner** tool that takes platform teams from business requirements to running llm-d deployments.
 - Replace NeuralNav's coarse recommendation engine with Config Explorer's architecture-aware memory estimation, roofline analysis, and GPU ranking.
-- Use real benchmark data when an exact match exists and fall back to validated performance estimates when it does not. Utilize common database format (such as may be proposed for Prism visualizer).
+- Use real benchmark data when an exact match exists and fall back to validated performance estimates when it does not. Work with the Prism project to converge on a common benchmark database format.
 - Support prefill/decode disaggregation configuration as a first-class deployment topology.
 - Close the feedback loop between pre-deployment estimates and post-deployment benchmark results.
 - Design a pluggable interface for inference performance estimation engines (e.g., BLIS, BentoML roofline model).
@@ -49,9 +49,11 @@ A key advantage of the integrated planner is that it enables several reinforcing
 
 - Replacing either project's existing capabilities wholesale; the integration builds on each project's strengths.
 - Building a new UI framework from scratch; the existing NeuralNav conversational interface is reused.
-- Provide benchmark data analysis or comprehensive visualizations. While benchmark data will be used to assist with making configuration recommendations to a user, neither NeuralNav or Config Explorer are meant to be a primary interface for exploring or analyzing benchmark results.
+- Provide benchmark data analysis or comprehensive visualizations. While benchmark data will be used to assist with making configuration recommendations to a user, neither NeuralNav nor Config Explorer is meant to be a primary interface for exploring or analyzing benchmark results.
 
 ## Proposal
+
+The unified project will live in a new `llm-d/llm-d-planner` repository.
 
 ### Complementary Capabilities
 
@@ -87,12 +89,12 @@ The integration connects Config Explorer's estimation backend with NeuralNav's u
 |---|---|---|---|
 | Presentation | Conversational UI | NeuralNav | Requirements gathering + better user experience |
 | Orchestration | Specification service | NeuralNav | Intent to SLO and traffic profile mapping |
-| Recommendation | Config Explorer API | NeuralNav and Config Explorer | Use NeuralNav for existing benchmarks, use Config Explorer for explored configuration (includes memory estimation, roofline analysis, GPU ranking) |
-| Knowledge | TBD | NeuralNav and llm-d-benchmark. Future: llm-d Results Store (joint work with Google) | Leverage llm-d-benchmark data for source of performance truth |
+| Recommendation | Config Explorer API | NeuralNav and Config Explorer | Use NeuralNav for existing benchmarks, use Config Explorer for exploring un-benchmarked configurations (memory estimation, roofline analysis, GPU ranking) |
+| Knowledge | Benchmark Store | NeuralNav and llm-d-benchmark. Future: llm-d Results Store (joint work with Google) | Leverage llm-d-benchmark data for source of performance truth |
 | Deployment | Kubernetes | NeuralNav | Manifest generation, cluster orchestration |
 | Monitoring | Kubernetes | NeuralNav, llm-d-observability | Live monitoring of llm-d stack health |
 
-### User Stories (Optional)
+### User Stories
 
 #### Story 1
 
@@ -107,16 +109,16 @@ The monitoring layer detects the shift and triggers re-evaluation. The planner s
 
 ### Short-term: unified recommendation engine
 
-The integration is not a simple swap. NeuralNav already has a working recommendation path. The goal is to have Config Explorer's backend power the pieces NeuralNav currently lacks: architecture-aware memory estimation, quantization-aware sizing, parallelism strategy evaluation and roofline-based throughput/latency modelling.
+The integration is not a simple swap. NeuralNav already has a working recommendation path. The goal is to have Config Explorer's backend power the pieces NeuralNav currently lacks: architecture-aware memory estimation, quantization-aware sizing, parallelism strategy evaluation and roofline-based throughput/latency modeling.
 
 | Milestone | Description | Deliverable |
 |---|---|---|
-| Extract Config Explorer into a standalone llm-d repo | Separate config_explorer from llm-d-benchmark monorepo into standalone package with versioned releases | llm-d/llm-d-planner |
-| Move NeuralNav into llm-d-planner as a separate component from config explorer to begin with | ^ | ^ |
+| Extract Config Explorer into a standalone llm-d repo | Separate config_explorer from llm-d-benchmark monorepo into standalone package with versioned releases | llm-d/llm-d-planner repo with Config Explorer as standalone package |
+| Move NeuralNav into llm-d-planner as a separate component from config explorer to begin with | Integrate NeuralNav into llm-d-planner alongside Config Explorer | llm-d/llm-d-planner repo with NeuralNav integrated |
 | UI and API integration | Bridge a single user-friendly interface from business intent extraction to llm-d deployment | A single frontend and API server backend |
-| Converge on common benchmark data format | Have NeuralNav work with llm-d-benchmark v2 benchmark report schema format that already exist | Agreement in API interfaces |
+| Converge on common benchmark data format | Have NeuralNav work with llm-d-benchmark v2 benchmark report schema format that already exists | Agreement in API interfaces |
 | Hybrid recommendation | Replace NeuralNav's coarse QPS-based filtering with Config Explorer's roofline + memory estimation; fall back to real benchmark when exact match exists | NeuralNav recommendation view shows "Estimated" vs. "Benchmarked" labels per config |
-| Integrating a more accurate inference performance estimation engine like BLIS (phase 1) | Simulating inference performance is a critical component because running real benchmarks are expensive. To sweep through configurations rapidly, estimators that accurately predict inference performance are required. | Design a pluggable interface for inference engines like BLIS or Config Explorer's current use of BentoML roofline model. |
+| BLIS integration (phase 1) | Integrate a more accurate inference performance estimation engine like BLIS to enable rapid configuration sweeps without running real benchmarks | Pluggable interface for inference engines like BLIS or Config Explorer's current use of BentoML roofline model |
 | PD disaggregation knobs search | Deliver end-to-end configurator for P/D deployments, including TP, DP arguments, suggesting P and D replicas, and KV-cache transfer strategy. | Supports llm-d's PD split serving framework with data-backed configurations |
 | Kubernetes deployment generator | Kubernetes manifest generation by converting to Kustomize or Kubernetes yaml files | Quick manifest generation engine for the recommended configurations |
 | llm-d Blog post on llm-d-planner's capabilities | Document llm-d-planner journey for easy configuration planning for llm-d | Public validation of approach, community feedback loop, and impact |
@@ -127,7 +129,7 @@ Objective: expand the recommendation surface from hardware selection to full ser
 
 | Milestone | Description | Deliverable |
 |---|---|---|
-| Inference scheduler and scoring search. Phase 2 of BLIS integration. | Extend configuration search to inference scheduler and scoring weights | Present performance data (real or estimated) for inference scheduling-driven configuration comparison |
+| Inference scheduler and scoring search (BLIS phase 2) | Extend configuration search to inference scheduler and scoring weights | Present performance data (real or estimated) for inference scheduling-driven configuration comparison |
 | Benchmark-backed validation | Run llm-d benchmark sweeps for each recommendation configuration. Stores results (local or publicly managed DB by llm-d) | Closes feedback loop. Estimations are compared to real throughput/latency |
 | Blog posts | Planning and search across vLLM + inference scheduler knobs with real results. | Continued public validation of approach, community feedback loop, and impact |
 
@@ -135,14 +137,14 @@ Objective: expand the recommendation surface from hardware selection to full ser
 
 | Milestone | Deliverable | Impact |
 |---|---|---|
-| Improve accuracy and quality scoring into recommendation engine | Incorporate NeuralNav's scoring algorithm and enable automatic algorithmic discovery | Consumable scoring for llm-d-planner users |
+| Improve accuracy and quality scoring into recommendation engine | Incorporate NeuralNav's scoring algorithm and enable data-driven discovery of optimal scoring strategies | Consumable scoring for llm-d-planner users |
 | Dynamic tuning for workload adaptation | BLIS-trained tuning algorithm adapts scheduler parameters to shifting workload patterns in real time | Deployments self-optimize as traffic changes |
 | Dynamic tuning for PD adaptation | Extend dynamic tuning to PD, adapting on request shape | Handles mixed short/long context traffic without manual retuning |
 | LoRA load balancing | LoRA adapter routing and balancing | Supports multi-tenant LoRA serving at scale |
 
 ### Progression
 
-**Stage 1**: Static configuration recommendation. Given a business requirement or additional constraints like model, workload, or GPU pool recommend the right count and memory layout.
+**Stage 1**: Static configuration recommendation. Given a business requirement or additional constraints like model, workload, or GPU pool, recommend the right GPU count and memory layout.
 
 **Stage 2**: Serving-stack knob search with real benchmarks. Expand beyond hardware to tune the full llm-d serving stack, including vLLM engine parameters, inference-scheduler settings, and prefill-decode disaggregation.
 
@@ -153,13 +155,13 @@ Objective: expand the recommendation surface from hardware selection to full ser
 **For llm-d ecosystem:**
 
 - **Config Explorer as a shared service**: extracting it to a standalone repo with a stable API makes capacity planning reusable across llm-d tooling, not just NeuralNav but any component that needs to reason about model-hardware fit.
-- **Pluggable estimation backends**: The BLIS and BentoML provider interface invite external contributors to add new modelling approaches without forking the stack.
+- **Pluggable estimation backends**: The BLIS and BentoML provider interface invite external contributors to add new modeling approaches without forking the stack.
 - **Closed feedback loop**: benchmark results flow back to the recommendation engine so estimate accuracy improves with every deployment rather than staying the same.
 
 **For platform teams deploying LLMs and llm-d serving stacks:**
 
-- **Fewer failed deployments** given architectural-aware memory estimation that catches OOM conditions and under-provisioned configs before anything is scheduled.
-- **Lower GPU cost**: joint optimization across hardware selection, parallelism strategies and serving-stack knobs surface configurations that meet SLOs at a minimum cost rather than defaulting to largest GPU.
+- **Fewer failed deployments** given architecture-aware memory estimation that catches OOM conditions and under-provisioned configs before anything is scheduled.
+- **Lower GPU cost**: joint optimization across hardware selection, parallelism strategies, and serving-stack knobs surfaces configurations that meet SLOs at minimum cost rather than defaulting to the largest GPU.
 - **Faster time-to-production**: a single workflow from natural language requirements to running deployment eliminates the manual handoff between business requirement mapping, capacity planning, and infrastructure provisioning.
 
 ### Risks and Mitigation Strategies
@@ -185,4 +187,4 @@ This was ruled out because the manual handoff between tools is error-prone and d
 
 Instead of integrating Config Explorer, NeuralNav could develop its own memory estimation, roofline modeling, and parallelism evaluation from scratch. This would keep the project self-contained with no external dependency.
 
-This was ruled out because it duplicates work that Config Explorer has already done and validated against real vLLM profiling data. Building and maintaining accurate memory models for diverse architectures (MoE dense, multimodal) and quantization schemes is a substantial ongoing effort. Leveraging Config Explorer's existing, empirically validated models avoids this duplication and lets both teams focus on their respective strengths.
+This was ruled out because it duplicates work that Config Explorer has already done and validated against real vLLM profiling data. Building and maintaining accurate memory models for diverse architectures (MoE, dense, multimodal) and quantization schemes is a substantial ongoing effort. Leveraging Config Explorer's existing, empirically validated models avoids this duplication and lets both teams focus on their respective strengths.
