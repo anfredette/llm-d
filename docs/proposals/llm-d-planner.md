@@ -136,7 +136,7 @@ isolation.
 
 ## Proposal
 
-The unified project will live in a new `llm-d/llm-d-planner` repository.
+The unified project will live in a new `llm-d/llm-d-planner` repository. Because Config Explorer already lives in llm-d-benchmark, a core llm-d repository, and the planner directly serves the llm-d deployment workflow, the new repository belongs in the `llm-d` organization rather than `llm-d-incubation`.
 
 ### Complementary Capabilities
 
