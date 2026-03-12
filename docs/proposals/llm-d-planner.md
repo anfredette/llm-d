@@ -226,7 +226,7 @@ throughput/latency modeling.
 | Hybrid recommendation | Augment NeuralNav's benchmark-based recommendations with Config Explorer's roofline + memory estimation for un-benchmarked configurations | Recommendation view shows "Benchmarked" or "Estimated" labels per config |
 | Inference estimation engine integration (phase 1) | Integrate an inference performance estimation engine to enable configuration sweeps without running real benchmarks. Open-source tools like [BLIS](https://github.com/inference-sim/inference-sim) already exist for this purpose. | Pluggable interface for inference estimation engines |
 | P/D disaggregation knobs search | End-to-end configuration for P/D deployments: TP, DP arguments, P and D replicas, and KV-cache transfer strategy | Data-backed P/D split configurations for llm-d |
-| Kubernetes deployment generator | Convert recommended configurations to Kustomize or Kubernetes YAML | Manifest generation engine for recommended configurations |
+| Kubernetes deployment generator | Generate deployable Kubernetes artifacts from a recommended configuration, with the user choosing between Kustomize overlays or plain YAML as the output format | Manifest generation engine for recommended configurations |
 | Blog post on llm-d-planner | Document the llm-d-planner journey and capabilities | Public validation of approach and community feedback |
 
 ### Mid-term: expand knob-space search and real benchmarking
