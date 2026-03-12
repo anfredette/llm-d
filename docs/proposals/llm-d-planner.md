@@ -223,7 +223,7 @@ throughput/latency modeling.
 | Move NeuralNav into llm-d-planner | Integrate NeuralNav alongside Config Explorer as a separate component | llm-d/llm-d-planner repo with NeuralNav integrated |
 | UI and API integration | Bridge a single interface from business intent extraction to llm-d deployment | Unified frontend and API server backend |
 | Converge on common benchmark data format | Adopt llm-d-benchmark v2 benchmark report schema in NeuralNav | Agreement on API interfaces |
-| Hybrid recommendation | Replace NeuralNav's coarse QPS-based filtering with Config Explorer's roofline + memory estimation; use real benchmarks when exact match exists | Recommendation view shows "Estimated" vs. "Benchmarked" labels per config |
+| Hybrid recommendation | Augment NeuralNav's benchmark-based recommendations with Config Explorer's roofline + memory estimation for un-benchmarked configurations | Recommendation view shows "Benchmarked" or "Estimated" labels per config |
 | Inference estimation engine integration (phase 1) | Integrate an inference performance estimation engine to enable configuration sweeps without running real benchmarks. Open-source tools like [BLIS](https://github.com/inference-sim/inference-sim) already exist for this purpose. | Pluggable interface for inference estimation engines |
 | P/D disaggregation knobs search | End-to-end configuration for P/D deployments: TP, DP arguments, P and D replicas, and KV-cache transfer strategy | Data-backed P/D split configurations for llm-d |
 | Kubernetes deployment generator | Convert recommended configurations to Kustomize or Kubernetes YAML | Manifest generation engine for recommended configurations |
@@ -239,6 +239,7 @@ disaggregation, backed by real vLLM or llm-d benchmark runs.
 |---|---|---|
 | Inference scheduler and scoring search (estimation engine phase 2) | Extend configuration search to inference scheduler and scoring weights | Present performance data (real or estimated) for inference scheduling-driven configuration comparison |
 | Benchmark-backed validation | Run llm-d benchmark sweeps for each recommendation configuration. Stores results (local or publicly managed DB by llm-d) | Closes feedback loop. Estimations are compared to real throughput/latency |
+| Multi-model and agentic workflow support | Support more complex use cases such as multi-model and agentic workflows | Recommendation engine handles multi-model topologies with per-model configuration and cross-model resource optimization |
 | Blog posts | Planning and search across vLLM + inference scheduler knobs with real results. | Continued public validation of approach, community feedback loop, and impact |
 
 ### Long-term: simulation-driven dynamic tuning
